@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 import datetime
 import RPi.GPIO as GPIO
 from Adafruit_BMP085 import BMP085
@@ -63,7 +63,21 @@ def readPressure():
                 'response' : response
         }
         return render_template('pressure.html', **templateData)
-#This is a test
+#Returns JSON values for web services
+@app.route('/getValues', methods=['GET'])
+def getValues():
+	try:
+		temperature = bmp.readTemperature()
+		pressure = bmp.readPressure()
+	except:
+		response = "There was an error getting values"
+	templateData={
+		'temperature' : float(temperature) * (9.0 / 5.0) + 32.0,
+		'pressure' : float(pressure / 100)
+	}
+	return jsonify(templateData)
+
+#If this program is run from console, it should bind to localhost
 if __name__ == "__main__":
    app.run(host='0.0.0.0', port=80, debug=True)
 
